@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect
 from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Room
+from .models import Room, ZadaniaStale
 from .forms import RoomForm, ZadaniaStaleForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -32,8 +32,8 @@ def logoutUser(request):
     return redirect('home')
 
 def home(request):
-    rooms = Room.objects.all()
-    context = {'rooms': rooms}
+    stales = ZadaniaStale.objects.all()
+    context = {'stales': stales}
     return render(request, 'home.html', context)
 
 def room(request, pk):
@@ -47,6 +47,23 @@ def createStale(request):
     form = ZadaniaStaleForm()
     if request.method == 'POST':
         form = ZadaniaStaleForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+
+    context = {'form': form}
+    return render(request, 'stale_form.html', context)
+
+@login_required(login_url='login')
+def updateStale(request, pk):
+    stale = ZadaniaStale.objects.get(id=pk)
+    form = ZadaniaStaleForm(instance=stale)
+
+    if request.user != stale.recipients:
+        return HttpResponse("You cant do that")
+
+    if request.method == 'POST':
+        form = ZadaniaStaleForm(request.POST, instance=stale)
         if form.is_valid():
             form.save()
             return redirect('home')

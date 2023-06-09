@@ -11,14 +11,13 @@
         {% endif %}
 
     <div>
-        {% for room in rooms %}
+        {% for stale in stales %}
         <div>
-            {% if request.user == room.host %}
-            <a href="{% url 'update-room' room.id %}">Edit</a>
+            {% if request.user == stale.recipients %}
+            <a href="{% url 'update-stale' stale.id %}">Edit</a>
             {% endif %}
-            <span>@{{room.host.username}}</span>
-            <h5>{{room.id}} -- <a href="{% url 'room' room.id %}">{{room.name}}</a></h5>
-            <small>{{room.topic.name}}</small>
+            <span>@{{stale.recipients.username}}</span>
+            <h5>{{stale.id}} -- <a href="{% url 'room' stale.id %}">{{stale.name}}</a></h5>
             <hr>
         </div>
 
