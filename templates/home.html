@@ -6,11 +6,10 @@
 
 <div>
 
-    <div>
-        <a href="{% url 'create-room' %}" class="create-link">Create Room</a>
+        {% if request.user.email == "kierownik@mail.com" %}
         <a href="{% url 'create-stale' %}" class="create-link">Create Zadanie Stale</a>
-    </div>
-    
+        {% endif %}
+
     <div>
         {% for room in rooms %}
         <div>
