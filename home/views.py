@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Room
-from .forms import RoomForm
+from .forms import RoomForm, ZadaniaStaleForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 
@@ -40,6 +40,19 @@ def room(request, pk):
     room = Room.objects.get(id=pk)
     context = {'room': room}
     return render(request, 'room.html', context)
+
+
+@login_required(login_url='login')
+def createStale(request):
+    form = ZadaniaStaleForm()
+    if request.method == 'POST':
+        form = ZadaniaStaleForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+
+    context = {'form': form}
+    return render(request, 'stale_form.html', context)
 
 
 @login_required(login_url='login')
