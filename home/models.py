@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.forms import ValidationError
 
 # Create your models here.
 
@@ -43,12 +44,22 @@ class Message(models.Model):
 from django.db import models
 from django.contrib.auth.models import User
 
+class PracownikManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(email='pracownik@mail.com')
+
 class ZadaniaStale(models.Model):
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='hosted_tasks', default=1)
     name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
-    recipients = models.ManyToManyField(User, blank=False, limit_choices_to={'email': 'pracownik@mail.com'})
-    created_at = models.DateTimeField(auto_now_add=True)
+    recipients = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='assigned_tasks', limit_choices_to={'email': 'pracownik@mail.com'})
+
+    objects = models.Manager()
+    pracownik_objects = PracownikManager()
+
+    def clean(self):
+        if self.recipients is None:
+            raise ValidationError("At least one recipient must be selected.")
 
     def __str__(self):
         return self.name
