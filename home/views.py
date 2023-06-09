@@ -7,16 +7,6 @@ from .forms import RoomForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 
-# Create your views here.
-
-#rooms = [
-#    {'id': 1, 'name': "Stale zadania"},
-#    {'id': 2, 'name': "Jednorazowe zadania"},
-#    {'id': 3, 'name': "Kalendarz zadan"},
-#    {'id': 4, 'name': "Generowanie raportow"},
-#    {'id': 5, 'name': "Eksport raportow"},
-#]
-
 def loginPage(request):
 
     if request.method == 'POST':
