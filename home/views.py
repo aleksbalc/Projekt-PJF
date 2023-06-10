@@ -2,10 +2,11 @@ from django.shortcuts import render,redirect
 from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Room, ZadaniaStale, ZadaniaJednorazowe
-from .forms import RoomForm, ZadaniaStaleForm, ZadaniaJednorazoweForm
-from django.contrib.auth.models import User
+from .models import ZadaniaStale, ZadaniaJednorazowe
+from .forms import ZadaniaStaleForm, ZadaniaJednorazoweForm
+from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
+
 
 def loginPage(request):
 
@@ -31,16 +32,21 @@ def logoutUser(request):
     logout(request)
     return redirect('home')
 
+
+@login_required(login_url='login')
 def home(request):
     stales = ZadaniaStale.objects.all()
-    context = {'stales': stales}
+    user = User.objects.get(username=request.user.username)
+    is_kierownik = check_group(user, "kierownik")
+    is_programista = check_group(user, "programista")
+
+    context = {'stales': stales, 'is_kierownik': is_kierownik, 'is_programista':is_programista}
     return render(request, 'home.html', context)
 
-def room(request, pk):
-    room = Room.objects.get(id=pk)
-    context = {'room': room}
-    return render(request, 'room.html', context)
-
+def check_group(user, name):
+    # Check if the user belongs to the str group
+    is_in_group = user.groups.filter(name=name).exists()
+    return is_in_group
 
 @login_required(login_url='login')
 def createStale(request):
@@ -102,32 +108,3 @@ def updateJednorazowe(request, pk):
     context = {'form': form}
     return render(request, 'jednorazowe_form.html', context)
 
-
-@login_required(login_url='login')
-def createRoom(request):
-    form = RoomForm()
-    if request.method == 'POST':
-        form = RoomForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-
-    context = {'form': form}
-    return render(request, 'room_form.html', context)
-
-@login_required(login_url='login')
-def updateRoom(request, pk):
-    room = Room.objects.get(id=pk)
-    form = RoomForm(instance=room)
-
-    if request.user != room.host:
-        return HttpResponse("You cant do that")
-
-    if request.method == 'POST':
-        form = RoomForm(request.POST, instance=room)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-
-    context = {'form': form}
-    return render(request, 'room_form.html', context)

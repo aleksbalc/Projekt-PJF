@@ -6,7 +6,7 @@
 
 <div>
 
-        {% if request.user.email == "kierownik@mail.com" %}
+        {% if is_kierownik %}
         <a href="{% url 'create-stale' %}" class="create-link">Create Zadanie Stale</a>
         {% endif %}
 
@@ -33,7 +33,7 @@
 
 <div>
 
-    {% if request.user.email == "pracownik@mail.com" %}
+    {% if is_programista %}
     <a href="{% url 'create-jednorazowe' %}" class="create-link">Create Zadanie Jednorazowe</a>
     {% endif %}
 

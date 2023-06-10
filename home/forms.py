@@ -1,11 +1,5 @@
 from django.forms import ModelForm
-from .models import Room, ZadaniaStale, ZadaniaJednorazowe
-
-
-class RoomForm(ModelForm):
-    class Meta:
-        model = Room
-        fields = '__all__'
+from .models import ZadaniaStale, ZadaniaJednorazowe
 
 class ZadaniaStaleForm(ModelForm):
     class Meta:
