@@ -11,20 +11,7 @@
         {% endif %}
 
     <div>
-        {% for stale in stales %}
-        <div>
-            {% if request.user == stale.recipients or request.user == stale.host %}
-            <div>
-                {% if request.user == stale.recipients %}
-                <a href="{% url 'update-stale' stale.id %}">Edit</a>
-                {% endif %}
-                <span>@{{stale.recipients.username}} ------- Progres: {{stale.progress}}</span>
-                <h5>{{stale.id}} -- <a href="{% url 'stale' stale.id %}">{{stale.name}}</a></h5>
-                <hr>
-            </div>
-            {% endif %}
-        </div>
-        {% endfor %}
+
     </div>
 
 </div>
