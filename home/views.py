@@ -39,7 +39,6 @@ def home(request):
     user = User.objects.get(username=request.user.username)
     is_kierownik = check_group(user, "kierownik")
     is_programista = check_group(user, "programista")
-
     context = {'stales': stales, 'is_kierownik': is_kierownik, 'is_programista':is_programista}
     return render(request, 'home.html', context)
 
@@ -48,13 +47,20 @@ def check_group(user, name):
     is_in_group = user.groups.filter(name=name).exists()
     return is_in_group
 
+def stale(request, pk):
+    stale = ZadaniaStale.objects.get(id=pk)
+    context = {'stale': stale}
+    return render(request, 'stale.html', context)
+
 @login_required(login_url='login')
 def createStale(request):
     form = ZadaniaStaleForm()
     if request.method == 'POST':
         form = ZadaniaStaleForm(request.POST)
         if form.is_valid():
-            form.save()
+            zadanie_stale = form.save(commit=False)
+            zadanie_stale.host = request.user
+            zadanie_stale.save()
             return redirect('home')
 
     context = {'form': form}
