@@ -9,6 +9,8 @@ urlpatterns = [
     path('room/<str:pk>/', views.room, name="room"),
     path('create-stale/', views.createStale, name="create-stale"),
     path('update-stale/<str:pk>/', views.updateStale, name="update-stale"),
+    path('create-jednorazowe/', views.createJednorazowe, name="create-jednorazowe"),
+    path('update-jednorazowe/<str:pk>/', views.updateJednorazowe, name="update-jednorazowe"),
     path('create-room/', views.createRoom, name="create-room"),
     path('update-room/<str:pk>/', views.updateRoom, name="update-room"),
 ]

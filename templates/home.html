@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<h1>Home Template</h1>
+<h1>Przydzielone Zadania Stale</h1>
 
 <div>
 
@@ -13,17 +13,44 @@
     <div>
         {% for stale in stales %}
         <div>
-            {% if request.user == stale.recipients %}
-            <a href="{% url 'update-stale' stale.id %}">Edit</a>
+            {% if request.user == stale.recipients or request.user == stale.host %}
+            <div>
+                {% if request.user == stale.recipients %}
+                <a href="{% url 'update-stale' stale.id %}">Edit</a>
+                {% endif %}
+                <span>@{{stale.recipients.username}}</span>
+                <h5>{{stale.id}} -- <a href="{% url 'room' stale.id %}">{{stale.name}}</a></h5>
+                <hr>
+            </div>
             {% endif %}
-            <span>@{{stale.recipients.username}}</span>
-            <h5>{{stale.id}} -- <a href="{% url 'room' stale.id %}">{{stale.name}}</a></h5>
-            <hr>
         </div>
-
         {% endfor %}
     </div>
 
 </div>
 
+<h1>Przydzielone Zadania Jednorazowe</h1>
+
+<div>
+
+    {% if request.user.email == "pracownik@mail.com" %}
+    <a href="{% url 'create-jednorazowe' %}" class="create-link">Create Zadanie Jednorazowe</a>
+    {% endif %}
+
+<div>
+    {% for jednorazowe in jednorazowes %}
+    <div>
+        {% if request.user == jednorazowe.host %}
+        <div>
+            <a href="{% url 'update-jednorazowe' jednorazowe.id %}">Edit</a>
+            <span>@{{jednorazowe.host.username}}</span>
+            <h5>{{jednorazowe.id}} -- <a href="{% url 'room' jednorazowe.id %}">{{jednorazowe.name}}</a></h5>
+            <hr>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+</div>
 {% endblock content %}

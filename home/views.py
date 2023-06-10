@@ -2,8 +2,8 @@ from django.shortcuts import render,redirect
 from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Room, ZadaniaStale
-from .forms import RoomForm, ZadaniaStaleForm
+from .models import Room, ZadaniaStale, ZadaniaJednorazowe
+from .forms import RoomForm, ZadaniaStaleForm, ZadaniaJednorazoweForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 
@@ -70,6 +70,37 @@ def updateStale(request, pk):
 
     context = {'form': form}
     return render(request, 'stale_form.html', context)
+
+@login_required(login_url='login')
+def createJednorazowe(request):
+    form = ZadaniaJednorazoweForm()
+    if request.method == 'POST':
+        form = ZadaniaJednorazoweForm(request.POST)
+        if form.is_valid():
+            zadanie_jednorazowe = form.save(commit=False)
+            zadanie_jednorazowe.host = request.user
+            zadanie_jednorazowe.save()
+            return redirect('home')
+
+    context = {'form': form}
+    return render(request, 'jednorazowe_form.html', context)
+
+@login_required(login_url='login')
+def updateJednorazowe(request, pk):
+    jednorazowe = ZadaniaJednorazowe.objects.get(id=pk)
+    form = ZadaniaJednorazoweForm(instance=jednorazowe)
+
+    if request.user != jednorazowe.host:
+        return HttpResponse("You cant do that")
+
+    if request.method == 'POST':
+        form = ZadaniaJednorazoweForm(request.POST, instance=jednorazowe)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+
+    context = {'form': form}
+    return render(request, 'jednorazowe_form.html', context)
 
 
 @login_required(login_url='login')

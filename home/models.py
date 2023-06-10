@@ -63,5 +63,26 @@ class ZadaniaStale(models.Model):
 
     def __str__(self):
         return self.name
+    
+class ZadaniaJednorazowe(models.Model):
+
+    PROGRESS_CHOICES = (
+        ('rozpoczęte', 'Rozpoczęte'),
+        ('zakończone', 'Zakończone'),
+    )
+
+    host = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
+    name = models.CharField(max_length=200)
+    description = models.TextField(null=True, blank=True)
+    progress = models.CharField(max_length=20, choices=PROGRESS_CHOICES)
+    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-updated', '-created']
+
+    def __str__(self):
+        return self.name
+
 
 
