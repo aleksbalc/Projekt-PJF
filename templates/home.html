@@ -18,8 +18,8 @@
                 {% if request.user == stale.recipients %}
                 <a href="{% url 'update-stale' stale.id %}">Edit</a>
                 {% endif %}
-                <span>@{{stale.recipients.username}}</span>
-                <h5>{{stale.id}} -- <a href="{% url 'room' stale.id %}">{{stale.name}}</a></h5>
+                <span>@{{stale.recipients.username}} ------- Progres: {{stale.progress}}</span>
+                <h5>{{stale.id}} -- <a href="{% url 'stale' stale.id %}">{{stale.name}}</a></h5>
                 <hr>
             </div>
             {% endif %}
@@ -40,11 +40,13 @@
 <div>
     {% for jednorazowe in jednorazowes %}
     <div>
-        {% if request.user == jednorazowe.host %}
+        {% if request.user == jednorazowe.host or request.user.email == "kierownik@mail.com" %}
         <div>
+            {% if request.user == jednorazowe.host %}
             <a href="{% url 'update-jednorazowe' jednorazowe.id %}">Edit</a>
-            <span>@{{jednorazowe.host.username}}</span>
-            <h5>{{jednorazowe.id}} -- <a href="{% url 'room' jednorazowe.id %}">{{jednorazowe.name}}</a></h5>
+            {% endif %}
+            <span>@{{jednorazowe.host.username}} ------- Progres: {{jednorazowe.progress}}</span>
+            <h5>{{jednorazowe.id}} -- <a href="{% url 'jednorazowe' jednorazowe.id %}">{{jednorazowe.name}}</a></h5>
             <hr>
         </div>
         {% endif %}

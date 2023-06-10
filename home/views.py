@@ -33,13 +33,24 @@ def logoutUser(request):
 
 def home(request):
     stales = ZadaniaStale.objects.all()
-    context = {'stales': stales}
+    jednorazowes = ZadaniaJednorazowe.objects.all()
+    context = {'stales': stales, 'jednorazowes': jednorazowes}
     return render(request, 'home.html', context)
 
 def room(request, pk):
     room = Room.objects.get(id=pk)
     context = {'room': room}
     return render(request, 'room.html', context)
+
+def stale(request, pk):
+    stale = ZadaniaStale.objects.get(id=pk)
+    context = {'stale': stale}
+    return render(request, 'stale.html', context)
+
+def jednorazowe(request, pk):
+    jednorazowe = ZadaniaJednorazowe.objects.get(id=pk)
+    context = {'jednorazowe': jednorazowe}
+    return render(request, 'jednorazowe.html', context)
 
 
 @login_required(login_url='login')
@@ -48,7 +59,9 @@ def createStale(request):
     if request.method == 'POST':
         form = ZadaniaStaleForm(request.POST)
         if form.is_valid():
-            form.save()
+            zadanie_stale = form.save(commit=False)
+            zadanie_stale.host = request.user
+            zadanie_stale.save()
             return redirect('home')
 
     context = {'form': form}
