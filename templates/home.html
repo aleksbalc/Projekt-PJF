@@ -7,12 +7,26 @@
 <div>
 
         {% if is_kierownik %}
-        <a href="{% url 'create-stale' %}" class="create-link">Create Zadanie Stale</a>
+        <a href="{% url 'create-stale' %}" class="create-link">Create Zadanie Stale</a><br>
+        <a href="{% url 'create-przydzielone-stale' %}" class="create-link">Przydziel Zadanie Stale</a>
         {% endif %}
 
-    <div>
-
-    </div>
+    <!-- <div>
+        {% for stale in stales %}
+        <div>
+            {% if request.user == stale.recipients or request.user == stale.host %}
+            <div>
+                {% if request.user == stale.recipients %}
+                <a href="{% url 'update-stale' stale.id %}">Edit</a>
+                {% endif %}
+                <span>@{{stale.recipients.username}} ------- Progres: {{stale.progress}}</span>
+                <h5>{{stale.id}} -- <a href="{% url 'stale' stale.id %}">{{stale.name}}</a></h5>
+                <hr>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div> -->
 
 </div>
 
@@ -27,7 +41,7 @@
 <div>
     {% for jednorazowe in jednorazowes %}
     <div>
-        {% if request.user == jednorazowe.host or request.user.email == "kierownik@mail.com" %}
+        {% if is_programista %}
         <div>
             {% if request.user == jednorazowe.host %}
             <a href="{% url 'update-jednorazowe' jednorazowe.id %}">Edit</a>
