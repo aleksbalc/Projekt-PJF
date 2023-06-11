@@ -17,8 +17,8 @@ class PrzydzieloneZadanieStale(models.Model):
     host = models.ForeignKey(User, on_delete=models.CASCADE, default=1, related_name='hosted_tasks')
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, default=1, related_name='received_tasks')
     created = models.DateTimeField(default=timezone.now)
-    started = models.DateField(null=True, blank=True)
-    finished = models.DateField(null=True, blank=True)
+    started = models.DateTimeField(null=True, blank=True)
+    finished = models.DateTimeField(null=True, blank=True)
 
 
 class ZadaniaJednorazowe(models.Model):
@@ -26,8 +26,8 @@ class ZadaniaJednorazowe(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     created = models.DateTimeField(default=timezone.now)
-    started = models.DateField(null=True, blank=True)
-    finished = models.DateField(null=True, blank=True)
+    started = models.DateTimeField(null=True, blank=True)
+    finished = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created']
@@ -38,11 +38,11 @@ class ZadaniaJednorazowe(models.Model):
 
 class H_ZadaniaStale(models.Model):
     id_pzs = models.ForeignKey(PrzydzieloneZadanieStale, on_delete=models.CASCADE, default=1)
-    started = models.DateField(null=True, blank=True)
-    finished = models.DateField(null=True, blank=True)
+    started = models.DateTimeField(null=True, blank=True)
+    finished = models.DateTimeField(null=True, blank=True)
 
 
 class H_ZadaniaJednorazowe(models.Model):
     id_pzs = models.ForeignKey(ZadaniaJednorazowe, on_delete=models.CASCADE, default=1)
-    started = models.DateField(null=True, blank=True)
-    finished = models.DateField(null=True, blank=True)
+    started = models.DateTimeField(null=True, blank=True)
+    finished = models.DateTimeField(null=True, blank=True)

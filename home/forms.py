@@ -18,3 +18,8 @@ class ZadaniaJednorazoweForm(ModelForm):
     class Meta:
         model = ZadaniaJednorazowe
         fields = ['name','description']
+
+class EditJednorazoweForm(ModelForm):
+    class Meta:
+        model = ZadaniaJednorazowe
+        fields = ['started','finished']

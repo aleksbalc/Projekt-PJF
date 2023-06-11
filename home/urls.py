@@ -8,7 +8,11 @@ urlpatterns = [
     path('',views.home, name="home"),
     path('create-stale/', views.createStale, name="create-stale"),
     path('create-przydzielone-stale/', views.createPrzydzieloneStale, name="create-przydzielone-stale"),
-    path('update-stale/<str:pk>/', views.updateStale, name="update-stale"),
+    path('start-stale/<str:pk>/', views.startStale, name="start-stale"),
+    path('finish-stale/<str:pk>/', views.finishStale, name="finish-stale"),
+    path('edit-stale/<str:pk>/', views.editStale, name="edit-stale"),
     path('create-jednorazowe/', views.createJednorazowe, name="create-jednorazowe"),
-    path('update-jednorazowe/<str:pk>/', views.updateJednorazowe, name="update-jednorazowe"),
+    path('start-jednorazowe/<str:pk>/', views.startJednorazowe, name="start-jednorazowe"),
+    path('finish-jednorazowe/<str:pk>/', views.finishJednorazowe, name="finish-jednorazowe"),
+    path('edit-jednorazowe/<str:pk>/', views.editJednorazowe, name="edit-jednorazowe"),
 ]

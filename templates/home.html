@@ -17,10 +17,19 @@
             {% if request.user == p_stale.recipient or is_kierownik %}
             <div>
                 {% if request.user == p_stale.recipient %}
-                <a>Edit</a>
+                <div>
+                    {% if p_stale.started is None %}
+                    <a href="{% url 'start-stale' p_stale.id %}">Rozpocznij Zadanie</a>
+                    {% elif p_stale.started is not None and p_stale.finished is None %}
+                    <a href="{% url 'finish-stale' p_stale.id %}">Zakoncz Zadanie</a>
+                    {% else %}
+                    <a href="{% url 'edit-stale' p_stale.id %}">Edytuj Zadanie</a>
+                    {% endif %}
+                </div>
                 {% endif %}
                 <span>@{{p_stale.recipient.username}}</span>
-                <h5><a>{{p_stale.id_zs.name}}</a></h5>
+                <h3>{{p_stale.id_zs.name}}</h3>
+                <h5>{{p_stale.id_zs.description}}</h5>
                 <hr>
             </div>
             {% endif %}
@@ -38,6 +47,31 @@
     <a href="{% url 'create-jednorazowe' %}" class="create-link">Create Zadanie Jednorazowe</a>
     {% endif %}
 
+    <div>
+        {% for jednorazowe in jednorazowes %}
+        <div>
+            {% if request.user == jednorazowe.host or is_kierownik %}
+            <div>
+                {% if request.user == jednorazowe.host %}
+                <div>
+                    {% if jednorazowe.started is None %}
+                    <a href="{% url 'start-jednorazowe' jednorazowe.id %}">Rozpocznij Zadanie</a>
+                    {% elif jednorazowe.started is not None and jednorazowe.finished is None %}
+                    <a href="{% url 'finish-jednorazowe' jednorazowe.id %}">Zakoncz Zadanie</a>
+                    {% else %}
+                    <a href="{% url 'edit-jednorazowe' jednorazowe.id %}">Edytuj Zadanie</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <span>@{{jednorazowe.host}}</span>
+                <h3>{{jednorazowe.name}}</h3>
+                <h5>{{jednorazowe.description}}</h5>
+                <hr>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
 
 </div>
 {% endblock content %}
