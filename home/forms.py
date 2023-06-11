@@ -23,3 +23,9 @@ class EditJednorazoweForm(ModelForm):
     class Meta:
         model = ZadaniaJednorazowe
         fields = ['started','finished']
+
+
+class EditStaleForm(ModelForm):
+    class Meta:
+        model = ZadaniaJednorazowe
+        fields = ['started','finished']

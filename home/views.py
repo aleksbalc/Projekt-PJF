@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import ZadaniaStale, ZadaniaJednorazowe, PrzydzieloneZadanieStale, H_ZadaniaJednorazowe, H_ZadaniaStale
-from .forms import ZadaniaStaleForm, ZadaniaJednorazoweForm, PrzydzieloneZadanieStaleForm, EditJednorazoweForm
+from .forms import ZadaniaStaleForm, ZadaniaJednorazoweForm, PrzydzieloneZadanieStaleForm, EditJednorazoweForm, EditStaleForm
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
 from django.utils import timezone
@@ -110,8 +110,16 @@ def editStale(request, pk):
     form = EditJednorazoweForm(instance=stale)
 
     if request.method == 'POST':
-        form = EditJednorazoweForm(request.POST, instance=stale)
+        prev_started = stale.started
+        prev_finished = stale.finished
+        form = EditStaleForm(request.POST, instance=stale)
         if form.is_valid():
+            h_zadanie = H_ZadaniaStale(
+                id_pzs=stale,
+                started=prev_started,
+                finished=prev_finished
+            )
+            h_zadanie.save()
             form.save()
             return redirect('home')
 
@@ -156,8 +164,17 @@ def editJednorazowe(request, pk):
     form = EditJednorazoweForm(instance=jednorazowe)
 
     if request.method == 'POST':
+        prev_started = jednorazowe.started
+        prev_finished = jednorazowe.finished
         form = EditJednorazoweForm(request.POST, instance=jednorazowe)
         if form.is_valid():
+            # Create a new H_ZadaniaJednorazowe record with the original values
+            h_zadanie = H_ZadaniaJednorazowe(
+                id_pzs=jednorazowe,
+                started=prev_started,
+                finished=prev_finished
+            )
+            h_zadanie.save()
             form.save()
             return redirect('home')
 
@@ -209,19 +226,82 @@ def generateJednorazowy(request):
         total=Sum(ExpressionWrapper(F('finished') - F('started'), output_field=models.DurationField()))
     )['total']
 
-    raport = []
+    report = []
     for zadanie in jednorazowe:
         time_spent = "Nie ukonczone"
         if zadanie.started and zadanie.finished:
             time_spent = zadanie.finished - zadanie.started
 
-        raport.append({
+        report.append({
             'id': zadanie.id,
             'name': zadanie.name,
             'description': zadanie.description,
             'time_spent': time_spent,
         })
 
+    context = {'report_data': report, 'total_time_spent': total_time_spent}
+    return render(request, 'jednorazowy_report.html', context)
 
-    context = {'report_data': raport, 'total_time_spent': total_time_spent}
+@login_required(login_url='login')
+def generateAllTasks(request):
+    total_time_spent = timedelta()
+    report = []
+    # generating regular tasks
+    stale = ZadaniaStale.objects.all()
+    regular_time_spent = timedelta()
+    for zadanie in stale:
+        assigned_tasks = PrzydzieloneZadanieStale.objects.filter(id_zs=zadanie)
+        if check_group(request.user, "programista"):
+            assigned_tasks = assigned_tasks.filter(recipient=request.user)
+
+        if assigned_tasks.exists():
+            for task in assigned_tasks:
+                report.append({
+                    'name': task.id_zs.name,
+                    'description': task.id_zs.description,
+                    'created': task.created,
+                    'started': task.started,
+                    'finished': task.finished,
+                    'time': 0 if (task.finished is None or task.started is None) else task.finished - task.created,
+                })
+
+            completed_tasks = assigned_tasks.exclude(started=None)
+            completed_tasks = completed_tasks.exclude(finished=None)
+            if completed_tasks.exists():
+
+                regular_time = completed_tasks.aggregate(
+                    total=Sum(ExpressionWrapper(F('finished') - F('created'), output_field=models.DurationField()))
+                )['total']
+                if regular_time:
+                    regular_time_spent += regular_time
+
+    # generating singular tasks
+
+    jednorazowe = ZadaniaJednorazowe.objects.filter(
+        Q(started__isnull=False) | Q(finished__isnull=False))
+    if check_group(request.user, "programista"):
+        jednorazowe = jednorazowe.filter(host=request.user)
+
+
+    singular_time_spent = jednorazowe.exclude(started=None, finished=None).aggregate(
+        total=Sum(ExpressionWrapper(F('finished') - F('started'), output_field=models.DurationField()))
+    )['total']
+
+    for zadanie in jednorazowe:
+        time_spent = "Nie ukonczone"
+        if zadanie.started and zadanie.finished:
+            time_spent = zadanie.finished - zadanie.started
+
+        report.append({
+            'name': zadanie.name,
+            'description': zadanie.description,
+            'created': zadanie.created,
+            'started': zadanie.started,
+            'finished': zadanie.finished,
+            'time': time_spent,
+        })
+
+    total_time_spent = regular_time_spent + singular_time_spent
+    context = {'report_data': report, 'total_time_spent': total_time_spent}
+
     return render(request, 'jednorazowy_report.html', context)
