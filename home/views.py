@@ -169,9 +169,10 @@ def generateStaly(request):
     stale = ZadaniaStale.objects.all()
 
     report = []
-    total_time_spent = "Nie ukonczone"
+    total_time_spent = timedelta()
     for zadanie in stale:
-        assigned_tasks = PrzydzieloneZadanieStale.objects.filter(id_zs=zadanie)
+        assigned_tasks = PrzydzieloneZadanieStale.objects.filter(recipient=request.user)
+        assigned_tasks = assigned_tasks.filter(id_zs=zadanie)
 
         if assigned_tasks.exists():
             completed_tasks = assigned_tasks.exclude(finished=None)
@@ -180,14 +181,14 @@ def generateStaly(request):
                     total=Sum(ExpressionWrapper(F('finished') - F('created'), output_field=models.DurationField()))
                 )['total']
                 if total_time:
-                    total_time_spent = total_time
+                    total_time_spent += total_time
 
-        report.append({
-            'id': zadanie.id,
-            'name': zadanie.name,
-            'description': zadanie.description,
-            'time_spent': "Nie ukonczone",
-        })
+            report.append({
+                'id': zadanie.id,
+                'name': zadanie.name,
+                'description': zadanie.description,
+                # 'time_spent': "Not finished" if zadanie.finished is None else zadanie.finished - zadanie.created,
+            })
 
     context = {'report_data': report, 'total_time_spent': total_time_spent}
     return render(request, 'jednorazowy_report.html', context)
