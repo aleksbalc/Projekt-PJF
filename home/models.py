@@ -22,7 +22,7 @@ class PrzydzieloneZadanieStale(models.Model):
 
 
 class ZadaniaJednorazowe(models.Model):
-    host = models.ForeignKey(User, on_delete=models.CASCADE, null=False, related_name='hosted_jednorazowe_tasks')
+    host = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
     name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     created = models.DateTimeField(default=timezone.now)

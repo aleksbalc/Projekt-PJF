@@ -38,22 +38,6 @@
     <a href="{% url 'create-jednorazowe' %}" class="create-link">Create Zadanie Jednorazowe</a>
     {% endif %}
 
-<div>
-    {% for jednorazowe in jednorazowes %}
-    <div>
-        {% if is_programista %}
-        <div>
-            {% if request.user == jednorazowe.host %}
-            <a href="{% url 'update-jednorazowe' jednorazowe.id %}">Edit</a>
-            {% endif %}
-            <span>@{{jednorazowe.host.username}} ------- Progres: {{jednorazowe.progress}}</span>
-            <h5>{{jednorazowe.id}} -- <a href="{% url 'jednorazowe' jednorazowe.id %}">{{jednorazowe.name}}</a></h5>
-            <hr>
-        </div>
-        {% endif %}
-    </div>
-    {% endfor %}
-</div>
 
 </div>
 {% endblock content %}
