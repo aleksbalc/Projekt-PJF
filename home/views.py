@@ -171,24 +171,30 @@ def generateStaly(request):
     report = []
     total_time_spent = timedelta()
     for zadanie in stale:
-        assigned_tasks = PrzydzieloneZadanieStale.objects.filter(recipient=request.user)
-        assigned_tasks = assigned_tasks.filter(id_zs=zadanie)
+        assigned_tasks = PrzydzieloneZadanieStale.objects.filter(id_zs=zadanie)
+        if check_group(request.user, "programista"):
+            assigned_tasks = assigned_tasks.filter(recipient=request.user)
 
         if assigned_tasks.exists():
-            completed_tasks = assigned_tasks.exclude(finished=None)
+            for task in assigned_tasks:
+                report.append({
+                    'name': task.id_zs.name,
+                    'description': task.id_zs.description,
+                    'created': task.created,
+                    'started': task.started,
+                    'finished': task.finished,
+                    'time': 0 if (task.finished is None or task.started is None) else task.finished - task.created,
+                })
+
+            completed_tasks = assigned_tasks.exclude(started=None)
+            completed_tasks = completed_tasks.exclude(finished=None)
             if completed_tasks.exists():
+
                 total_time = completed_tasks.aggregate(
                     total=Sum(ExpressionWrapper(F('finished') - F('created'), output_field=models.DurationField()))
                 )['total']
                 if total_time:
                     total_time_spent += total_time
-
-            report.append({
-                'id': zadanie.id,
-                'name': zadanie.name,
-                'description': zadanie.description,
-                # 'time_spent': "Not finished" if zadanie.finished is None else zadanie.finished - zadanie.created,
-            })
 
     context = {'report_data': report, 'total_time_spent': total_time_spent}
     return render(request, 'jednorazowy_report.html', context)
