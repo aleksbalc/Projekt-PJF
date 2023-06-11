@@ -15,4 +15,6 @@ urlpatterns = [
     path('start-jednorazowe/<str:pk>/', views.startJednorazowe, name="start-jednorazowe"),
     path('finish-jednorazowe/<str:pk>/', views.finishJednorazowe, name="finish-jednorazowe"),
     path('edit-jednorazowe/<str:pk>/', views.editJednorazowe, name="edit-jednorazowe"),
+    path('generate-raport-jednorazowy/', views.generateJednorazowy, name="generate-raport-jednorazowy"),
+    path('generate-raport-staly/', views.generateStaly, name="generate-raport-staly"),
 ]

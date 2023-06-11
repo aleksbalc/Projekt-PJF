@@ -8,9 +8,12 @@
 
         {% if is_kierownik %}
         <a href="{% url 'create-stale' %}" class="create-link">Create Zadanie Stale</a><br>
+        <a>Wyeksportuj Raporty</a>
         <a href="{% url 'create-przydzielone-stale' %}" class="create-link">Przydziel Zadanie Stale</a>
         {% endif %}
-
+        {% if is_programista %}
+        -------- <a href="{% url 'generate-raport-staly' %}">Wygeneruj Raport Zadan Stalych</a>
+        {% endif %}
     <div>
         {% for p_stale in p_stales %}
         <div>
@@ -45,6 +48,7 @@
 
     {% if is_programista %}
     <a href="{% url 'create-jednorazowe' %}" class="create-link">Create Zadanie Jednorazowe</a>
+    -------- <a href="{% url 'generate-raport-jednorazowy' %}">Wygeneruj Raport Zadan Jednorazowych</a>
     {% endif %}
 
     <div>

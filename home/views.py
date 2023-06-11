@@ -7,6 +7,9 @@ from .forms import ZadaniaStaleForm, ZadaniaJednorazoweForm, PrzydzieloneZadanie
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
 from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Q, Sum, ExpressionWrapper, F
+from django.db import models
 
 
 def loginPage(request):
@@ -160,3 +163,58 @@ def editJednorazowe(request, pk):
 
     context = {'form': form}
     return render(request, 'jednorazowe_form.html', context)
+
+@login_required(login_url='login')
+def generateStaly(request):
+    stale = ZadaniaStale.objects.all()
+
+    report = []
+    total_time_spent = "Nie ukonczone"
+    for zadanie in stale:
+        assigned_tasks = PrzydzieloneZadanieStale.objects.filter(id_zs=zadanie)
+
+        if assigned_tasks.exists():
+            completed_tasks = assigned_tasks.exclude(finished=None)
+            if completed_tasks.exists():
+                total_time = completed_tasks.aggregate(
+                    total=Sum(ExpressionWrapper(F('finished') - F('created'), output_field=models.DurationField()))
+                )['total']
+                if total_time:
+                    total_time_spent = total_time
+
+        report.append({
+            'id': zadanie.id,
+            'name': zadanie.name,
+            'description': zadanie.description,
+            'time_spent': "Nie ukonczone",
+        })
+
+    context = {'report_data': report, 'total_time_spent': total_time_spent}
+    return render(request, 'jednorazowy_report.html', context)
+
+@login_required(login_url='login')
+def generateJednorazowy(request):
+    jednorazowe = ZadaniaJednorazowe.objects.filter(
+    Q(started__isnull=False) | Q(finished__isnull=False),
+    host=request.user)
+
+    total_time_spent = jednorazowe.exclude(started=None, finished=None).aggregate(
+        total=Sum(ExpressionWrapper(F('finished') - F('started'), output_field=models.DurationField()))
+    )['total']
+
+    raport = []
+    for zadanie in jednorazowe:
+        time_spent = "Nie ukonczone"
+        if zadanie.started and zadanie.finished:
+            time_spent = zadanie.finished - zadanie.started
+
+        raport.append({
+            'id': zadanie.id,
+            'name': zadanie.name,
+            'description': zadanie.description,
+            'time_spent': time_spent,
+        })
+
+
+    context = {'report_data': raport, 'total_time_spent': total_time_spent}
+    return render(request, 'jednorazowy_report.html', context)
