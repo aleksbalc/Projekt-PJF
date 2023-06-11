@@ -37,10 +37,11 @@ def logoutUser(request):
 def home(request):
     stales = ZadaniaStale.objects.all()
     jednorazowes = ZadaniaJednorazowe.objects.all()
+    p_stales = PrzydzieloneZadanieStale.objects.all()
     user = User.objects.get(username=request.user.username)
     is_kierownik = check_group(user, "kierownik")
     is_programista = check_group(user, "programista")
-    context = {'stales': stales, 'jednorazowes': jednorazowes, 'is_kierownik': is_kierownik, 'is_programista':is_programista}
+    context = {'stales': stales, 'jednorazowes': jednorazowes, 'p_stales': p_stales, 'is_kierownik': is_kierownik, 'is_programista':is_programista}
     return render(request, 'home.html', context)
 
 def check_group(user, name):

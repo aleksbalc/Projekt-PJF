@@ -11,22 +11,22 @@
         <a href="{% url 'create-przydzielone-stale' %}" class="create-link">Przydziel Zadanie Stale</a>
         {% endif %}
 
-    <!-- <div>
-        {% for stale in stales %}
+    <div>
+        {% for p_stale in p_stales %}
         <div>
-            {% if request.user == stale.recipients or request.user == stale.host %}
+            {% if request.user == p_stale.recipient or is_kierownik %}
             <div>
-                {% if request.user == stale.recipients %}
-                <a href="{% url 'update-stale' stale.id %}">Edit</a>
+                {% if request.user == p_stale.recipient %}
+                <a>Edit</a>
                 {% endif %}
-                <span>@{{stale.recipients.username}} ------- Progres: {{stale.progress}}</span>
-                <h5>{{stale.id}} -- <a href="{% url 'stale' stale.id %}">{{stale.name}}</a></h5>
+                <span>@{{p_stale.recipient.username}}</span>
+                <h5><a>{{p_stale.id_zs.name}}</a></h5>
                 <hr>
             </div>
             {% endif %}
         </div>
         {% endfor %}
-    </div> -->
+    </div>
 
 </div>
 
