@@ -5,9 +5,9 @@
 <table>
     <thead>
       <tr>
+        <th>Type</th>
         <th>Name</th>
         <th>Description</th>
-        <th>Recipient</th>
         <th>Created</th>
         <th>Started</th>
         <th>Finished</th>
@@ -17,9 +17,9 @@
     <tbody>
       {% for row in report_data %}
       <tr>
+        <td>{{ row.type }}</td>
         <td>{{ row.name }}</td>
         <td>{{ row.description }}</td>
-        <td>{{ row.recipient }}</td>
         <td>{{ row.created }}</td>
         <td>{{ row.started }}</td>
         <td>{{ row.finished }}</td>
@@ -46,5 +46,25 @@
       </tr>
     </tbody>
   </table>
+
+
+<div>
+  <form action="{% url 'generate-all-tasks-report-csv-programista' %}" method="post">
+    {% csrf_token %}
+    <button type="submit">Extract to CSV</button>
+  </form>
+
+  <form action="{% url 'generate-all-tasks-report-pdf-programista' %}" method="post">
+    {% csrf_token %}
+    <button type="submit">Extract to PDF</button>
+  </form>
+
+  <form action="{% url 'generate-all-tasks-report-html-programista' %}" method="post">
+    {% csrf_token %}
+    <button type="submit">Extract to HTML</button>
+  </form>
+</div>
+
+
 
 {% endblock content %}

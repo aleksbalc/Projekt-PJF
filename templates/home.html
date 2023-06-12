@@ -4,11 +4,15 @@
 
 <h1>Generowanie raportow</h1>
 <div>
+    {% if is_programista %}
+            <a href="{% url 'generate-all-user-tasks-report' %}">Wygeneruj Raport Wszystkich Zadań</a><br>
+    {% endif %}
+
     {% if is_kierownik %}
     <div>
         <a href="{% url 'create-edited-dates-raport' %}" class="create-link">Raport Historii zmiany dat w zadaniach</a><br>
         <a href="{% url 'generate-specific-tasks-report' %}" class="create-link">Wygeneruj Raport Wszystkich Zadań Dla Poszczegolnego Pracownika</a><br>
-        <a href="{% url 'generate-all-tasks-report' %}" class="create-link">Wygeneruj Raport Zadań Dla Wszystkich Pracownikow</a><br>
+        <a href="{% url 'generate-all-tasks-report' %}" class="create-link">Wygeneruj Raport Wszystkich Zadań Dla Wszystkich Pracownikow</a><br>
     </div>
     {% endif %}
 </div>
@@ -22,7 +26,7 @@
         <a href="{% url 'create-przydzielone-stale' %}" class="create-link">Przydziel Zadanie Stale</a>
         {% endif %}
         {% if is_programista %}
-        -------- <a href="{% url 'generate-raport-staly' %}">Wygeneruj Raport Zadan Stalych</a>
+            <a href="{% url 'generate-raport-staly' %}">Wygeneruj Raport Zadan Stalych</a><br>
         {% endif %}
     <div>
         {% for p_stale in p_stales %}

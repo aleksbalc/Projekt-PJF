@@ -14,14 +14,16 @@ import csv
 from fpdf import FPDF
 
 
-def export_to_csv(report_data, filename):
-    keys = report_data[0].keys()  # Assuming all dictionaries have the same keys
+def export_to_csv(report_data, filename, total_time_spent):
+    keys = report_data[0].keys() | {'Total Time Spent'}   # Assuming all dictionaries have the same keys
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=keys)
         writer.writeheader()
         writer.writerows(report_data)
+        writer.writerow({'Total Time Spent': str(total_time_spent)})
 
-def export_to_pdf(report_data, filename):
+
+def export_to_pdf(report_data, filename, total_time_spent):
     class PDF(FPDF):
         def header(self):
             # Add header if needed
@@ -32,16 +34,26 @@ def export_to_pdf(report_data, filename):
             pass
 
     pdf = PDF()
-    pdf.add_page()
-    pdf.set_font('Arial', 'B', 12)
+    pdf.add_page('L', 'A4')
+    pdf.add_font('DejaVuSans', '', 'DejaVuSans.ttf', uni=True)
+    pdf.set_font('DejaVuSans', '', 7)
+    headers = ''
+    for key in report_data[0].keys():
+        headers = headers + '   ' + str(key)
+    pdf.cell(200, 10, str(headers), 0)
+    pdf.ln()
     for row in report_data:
+        line = ''
         for key, value in row.items():
-            pdf.cell(40, 10, str(value), 1)
-        pdf.ln()
+            line = line + '   ' + str(value)
+        pdf.cell(200, 12, str(line), 0)
+        pdf.ln( )
+    pdf.cell(200, 12, str('Total time spent {}'.format(total_time_spent)), 0)
     pdf.output(filename)
 
-def export_to_html(report_data, filename):
-    html = '<table>'
+def export_to_html(report_data, filename, total_time_spent):
+    html = '<div>'
+    html += '<table>'
     html += '<tr>'
     for key in report_data[0].keys():
         html += '<th>{}</th>'.format(key)
@@ -52,7 +64,15 @@ def export_to_html(report_data, filename):
             html += '<td>{}</td>'.format(value)
         html += '</tr>'
     html += '</table>'
-
+    html += '<table>'
+    html += '<tr>'
+    html += '<th>{}</th>'.format('Total Time Spent')
+    html += '</tr>'
+    html += '<tr>'
+    html += '<td>{}</td>'.format(total_time_spent)
+    html += '</tr>'
+    html += '</table>'
+    html += '</div>'
     with open(filename, 'w') as html_file:
         html_file.write(html)
 
@@ -286,72 +306,6 @@ def generateJednorazowy(request):
     context = {'report_data': report, 'total_time_spent': total_time_spent}
     return render(request, 'jednorazowy_report.html', context)
 
-# @login_required(login_url='login')
-# def generateAllTasks(request):
-#     total_time_spent = timedelta()
-#     report = []
-#     # generating regular tasks
-#     stale = ZadaniaStale.objects.all()
-#     regular_time_spent = timedelta()
-#     for zadanie in stale:
-#         assigned_tasks = PrzydzieloneZadanieStale.objects.filter(id_zs=zadanie)
-#         if check_group(request.user, "programista"):
-#             assigned_tasks = assigned_tasks.filter(recipient=request.user)
-#
-#         if assigned_tasks.exists():
-#             for task in assigned_tasks:
-#                 report.append({
-#                     'name': task.id_zs.name,
-#                     'description': task.id_zs.description,
-#                     'recipient': task.recipient,
-#                     'created': task.created,
-#                     'started': task.started,
-#                     'finished': task.finished,
-#                     'time': 0 if (task.finished is None or task.started is None) else task.finished - task.created,
-#                 })
-#
-#             completed_tasks = assigned_tasks.exclude(started=None)
-#             completed_tasks = completed_tasks.exclude(finished=None)
-#             if completed_tasks.exists():
-#
-#                 regular_time = completed_tasks.aggregate(
-#                     total=Sum(ExpressionWrapper(F('finished') - F('created'), output_field=models.DurationField()))
-#                 )['total']
-#                 if regular_time:
-#                     regular_time_spent += regular_time
-#
-#     # generating singular tasks
-#
-#     jednorazowe = ZadaniaJednorazowe.objects.filter(
-#         Q(started__isnull=False) | Q(finished__isnull=False))
-#     if check_group(request.user, "programista"):
-#         jednorazowe = jednorazowe.filter(host=request.user)
-#
-#
-#     singular_time_spent = jednorazowe.exclude(started=None, finished=None).aggregate(
-#         total=Sum(ExpressionWrapper(F('finished') - F('started'), output_field=models.DurationField()))
-#     )['total']
-#
-#     for zadanie in jednorazowe:
-#         time_spent = "Nie ukonczone"
-#         if zadanie.started and zadanie.finished:
-#             time_spent = zadanie.finished - zadanie.started
-#
-#         report.append({
-#             'name': zadanie.name,
-#             'description': zadanie.description,
-#             'recipient': zadanie.host,
-#             'created': zadanie.created,
-#             'started': zadanie.started,
-#             'finished': zadanie.finished,
-#             'time': time_spent,
-#         })
-#
-#     total_time_spent = regular_time_spent + singular_time_spent
-#     context = {'report_data': report, 'total_time_spent': total_time_spent}
-#
-#     return render(request, 'jednorazowy_report.html', context)
-
 @login_required(login_url='login')
 def createEditedDatesReport(request):
     # creating history report of regular tasks
@@ -391,7 +345,7 @@ def createEditedDatesReport(request):
     return render(request, 'edited_dates_report.html', context)
 
 @login_required(login_url='login')
-def generateAllTasksReport(request):
+def generateAllTasksReport(request): # generates report for all users
     total_time_spent = timedelta()
     report = []
     # generating regular tasks
@@ -405,6 +359,7 @@ def generateAllTasksReport(request):
         if assigned_tasks.exists():
             for task in assigned_tasks:
                 report.append({
+                    'type': 'Zadanie Stałe',
                     'name': task.id_zs.name,
                     'description': task.id_zs.description,
                     'recipient': task.recipient,
@@ -442,6 +397,7 @@ def generateAllTasksReport(request):
             time_spent = zadanie.finished - zadanie.started
 
         report.append({
+            'type': 'Zadanie Jednorazowe',
             'name': zadanie.name,
             'description': zadanie.description,
             'recipient': zadanie.host,
@@ -452,9 +408,49 @@ def generateAllTasksReport(request):
         })
 
     total_time_spent = regular_time_spent + singular_time_spent
-    context = {'report_data': report, 'total_time_spent': total_time_spent}
+    context = {'report_data': report, 'total_time_spent': total_time_spent, 'extract_available': True}
     return context
-    # return render(request, 'jednorazowy_report.html', context)
+
+def showAllTasksReportForKierownik(request): # shows generated all users task report
+    context = generateAllTasksReport(request)
+    return render(request, 'all-tasks-report.html', context)
+def showAllTasksReportForProgramista(request): # shows generated all users task report
+    context = generateAllTasksReport(request)
+    return render(request, 'jednorazowy_report.html', context)
+
+@login_required(login_url='login')
+def exportAllTasksReportCSV(request):
+    context = generateAllTasksReport(request)
+    export_to_csv(context['report_data'], 'all_tasks_report.csv', context['total_time_spent'])
+    return render(request, 'all-tasks-report.html', context)
+
+@login_required(login_url='login')
+def exportAllTasksReportPDF(request):
+    context = generateAllTasksReport(request)
+    export_to_pdf(context['report_data'], 'all_tasks_report.pdf', context['total_time_spent'])
+    return render(request, 'all-tasks-report.html', context)
+
+@login_required(login_url='login')
+def exportAllTasksReportHTML(request):
+    context = generateAllTasksReport(request)
+    export_to_html(context['report_data'], 'all_tasks_report.html', context['total_time_spent'])
+    return render(request, 'all-tasks-report.html', context)@login_required(login_url='login')
+def exportAllTasksReportCSVProgramista(request):
+    context = generateAllTasksReport(request)
+    export_to_csv(context['report_data'], 'all_tasks_report.csv', context['total_time_spent'])
+    return render(request, 'jednorazowy_report.html', context)
+
+@login_required(login_url='login')
+def exportAllTasksReportPDFProgramista(request):
+    context = generateAllTasksReport(request)
+    export_to_pdf(context['report_data'], 'all_tasks_report.pdf', context['total_time_spent'])
+    return render(request, 'jednorazowy_report.html', context)
+
+@login_required(login_url='login')
+def exportAllTasksReportHTMLProgramista(request):
+    context = generateAllTasksReport(request)
+    export_to_html(context['report_data'], 'all_tasks_report.html', context['total_time_spent'])
+    return render(request, 'jednorazowy_report.html', context)
 
 @login_required(login_url='login')
 def generateSpecificTasks(request):
@@ -547,18 +543,22 @@ def showGeneratedUserTasksReport(request, user_id):
 def exportUserTasksReportCSV(request, user_id):
     user = get_object_or_404(User, id=user_id)
     context = generateUserTasksReport(request, user_id)
-    filename = 'user_' + user.name + '_tasks_report.csv'
-    export_to_csv(context['report_data'], filename)
+    filename = 'user_' + user.username + '_tasks_report.csv'
+    export_to_csv(context['report_data'], filename, context['total_time_spent'])
     return render(request, 'user_tasks_report.html', context)
 
 @login_required(login_url='login')
 def exportUserTasksReportPDF(request, user_id):
+    user = get_object_or_404(User, id=user_id)
     context = generateUserTasksReport(request, user_id)
-    export_to_pdf(context['report_data'], 'report.pdf')
+    filename = 'user_' + user.username + '_tasks_report.pdf'
+    export_to_pdf(context['report_data'], filename, context['total_time_spent'])
     return render(request, 'user_tasks_report.html', context)
 
 @login_required(login_url='login')
 def exportUserTasksReportHTML(request, user_id):
+    user = get_object_or_404(User, id=user_id)
     context = generateUserTasksReport(request, user_id)
-    export_to_html(context['report_data'], 'report.html')
+    filename = 'user_' + user.username + '_tasks_report.html'
+    export_to_html(context['report_data'], filename, context['total_time_spent'])
     return render(request, 'user_tasks_report.html', context)

@@ -1,0 +1,72 @@
+{% extends 'main.html' %}
+
+{% block content %}
+
+<h1>Task Report for all users</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Recipient</th>
+      <th>Created</th>
+      <th>Started</th>
+      <th>Finished</th>
+      <th>Time spent</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in report_data %}
+    <tr>
+      <td>{{ row.type }}</td>
+      <td>{{ row.name }}</td>
+      <td>{{ row.description }}</td>
+      <td>{{ row.recipient }}</td>
+      <td>{{ row.created }}</td>
+      <td>{{ row.started }}</td>
+      <td>{{ row.finished }}</td>
+      {% if row.time %}
+      <td>{{ row.time }}</td>
+      {% else %}
+      <td>Not Finished</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<table>
+  <thead>
+    <tr>
+      <th>Total Time Spent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{{ total_time_spent }}</td>
+    </tr>
+  </tbody>
+</table>
+
+{% if extract_available %}
+<div>
+  <form action="{% url 'generate-all-tasks-report-csv' %}" method="post">
+    {% csrf_token %}
+    <button type="submit">Extract to CSV</button>
+  </form>
+
+  <form action="{% url 'generate-all-tasks-report-pdf' %}" method="post">
+    {% csrf_token %}
+    <button type="submit">Extract to PDF</button>
+  </form>
+
+  <form action="{% url 'generate-all-tasks-report-html' %}" method="post">
+    {% csrf_token %}
+    <button type="submit">Extract to HTML</button>
+  </form>
+</div>
+{% endif %}
+
+{% endblock content %}
