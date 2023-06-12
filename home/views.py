@@ -305,3 +305,41 @@ def generateAllTasks(request):
     context = {'report_data': report, 'total_time_spent': total_time_spent}
 
     return render(request, 'jednorazowy_report.html', context)
+
+@login_required(login_url='login')
+def createEditedDatesReport(request):
+    # creating history report of regular tasks
+    regular_report = []
+    h_regular = H_ZadaniaStale.objects.all()
+    for record in h_regular:
+        assigned_task = ZadaniaStale.objects.filter(id=record.id_pzs.id_zs.id)
+        if assigned_task.exists():
+            regular_report.append({
+                'id': record,
+                'name': record.id_pzs.id_zs.name,
+                'description': record.id_pzs.id_zs.description,
+                'current_started_date': record.id_pzs.started,
+                'history_started_date': record.started,
+                'current_finished_date': record.id_pzs.finished,
+                'history_finished_date': record.finished,
+            })
+
+    # creating history report of singular tasks
+    singular_report = []
+    h_singular = H_ZadaniaJednorazowe.objects.all()
+    for record in h_singular:
+        assigned_task = ZadaniaJednorazowe.objects.filter(id=record.id_pzs.id)
+        if assigned_task.exists():
+            singular_report.append({
+                'id': record,
+                'name': record.id_pzs.name,
+                'description': record.id_pzs.description,
+                'current_started_date': record.id_pzs.started,
+                'history_started_date': record.started,
+                'current_finished_date': record.id_pzs.finished,
+                'history_finished_date': record.finished,
+            })
+
+
+    context = {'regular_report': regular_report, 'singular_report': singular_report}
+    return render(request, 'edited_dates_report.html', context)

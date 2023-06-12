@@ -2,6 +2,13 @@
 
 {% block content %}
 
+<h1>Generowanie raportow</h1>
+<div>
+    {% if is_kierownik %}
+    <a href="{% url 'create-edited-dates-raport' %}" class="create-link">Raport Historii zmiany dat w zadaniach</a><br>
+    {% endif %}
+</div>
+
 <h1>Przydzielone Zadania Stale</h1>
 
 <div>

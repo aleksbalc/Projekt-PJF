@@ -1,0 +1,61 @@
+{% extends 'main.html' %}
+
+{% block content %}
+
+<h2>Historia edycji zadań stałych</h2>
+<table>
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Current started date</th>
+        <th>History started date</th>
+        <th>Current finished date</th>
+        <th>History finished date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in regular_report %}
+      <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.name }}</td>
+        <td>{{ row.description }}</td>
+        <td>{{ row.current_started_date }}</td>
+        <td>{{ row.history_started_date }}</td>
+        <td>{{ row.current_finished_date }}</td>
+        <td>{{ row.history_finished_date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Historia edycji zadań jednorazowych</h2>
+<table>
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Current started date</th>
+        <th>History started date</th>
+        <th>Current finished date</th>
+        <th>History finished date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in singular_report %}
+      <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.name }}</td>
+        <td>{{ row.description }}</td>
+        <td>{{ row.current_started_date }}</td>
+        <td>{{ row.history_started_date }}</td>
+        <td>{{ row.current_finished_date }}</td>
+        <td>{{ row.history_finished_date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock content %}
