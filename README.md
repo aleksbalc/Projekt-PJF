@@ -1,21 +1,23 @@
 # Projekt-PJF
-Aplikacja web wspierająca rejestrację czasu programisty
+**Aplikacja web wspierająca rejestrację czasu programisty**
 
 1. Aplikacja posiada interfejs graficzny obsługiwany przez przeglądarkę
 2. Korzystanie z aplikacji wymaga od użytkownika zalogowania się
 3. Zakończenie pracy wiąże się z wylogowaniem użytkownika
 4. Wszystkie dane przechowywane są w bazie danych
 5. Aplikacja posiada dwa profile użytkowników
-1. Kierownik
-2. Programista
-Funkcjonalności dla profilu Kierownik:
+  1. Kierownik
+  2. Programista
+
+**Funkcjonalności dla profilu Kierownik:**
 1. definiowanie dla całego zespołu Programistów stałych zadań
 2. definiowanie stałych zadań dla wybranego Programisty
 3. wgląd w wykonane przez Programistę zadania w dowolnie wybranym okresie (wraz z
 podsumowaniem łącznego czasu pracy)
 4. eksport raportów z realizacji zadań przez poszczególnych programistów w dowolnie
 wybranym okresie (wraz z podsumowaniem łącznego czasu pracy)
-Funkcjonalności dla profilu Programista:
+
+**Funkcjonalności dla profilu Programista:**
 1. rejestracja rzeczywistego (na podstawie zegara systemowego serwera) czasu rozpoczęcia
 wykonywania wybranego zadania stałego
 2. rejestracja rzeczywistego (na podstawie zegara systemowego serwera) czasu zakończenia
