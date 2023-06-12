@@ -1,0 +1,16 @@
+{% extends 'main.html' %}
+
+{% block content %}
+
+<form method="post" action="{% url 'generate-specific-tasks-report' %}">
+  {% csrf_token %}
+  <label for="user">Select User:</label>
+  <select name="user_id" id="user">
+    {% for user in users %}
+    <option value="{{ user.id }}">{{ user.username }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Generate Report</button>
+</form>
+
+{% endblock content %}

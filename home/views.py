@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -10,7 +10,51 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Q, Sum, ExpressionWrapper, F
 from django.db import models
+import csv
+from fpdf import FPDF
 
+
+def export_to_csv(report_data, filename):
+    keys = report_data[0].keys()  # Assuming all dictionaries have the same keys
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=keys)
+        writer.writeheader()
+        writer.writerows(report_data)
+
+def export_to_pdf(report_data, filename):
+    class PDF(FPDF):
+        def header(self):
+            # Add header if needed
+            pass
+
+        def footer(self):
+            # Add footer if needed
+            pass
+
+    pdf = PDF()
+    pdf.add_page()
+    pdf.set_font('Arial', 'B', 12)
+    for row in report_data:
+        for key, value in row.items():
+            pdf.cell(40, 10, str(value), 1)
+        pdf.ln()
+    pdf.output(filename)
+
+def export_to_html(report_data, filename):
+    html = '<table>'
+    html += '<tr>'
+    for key in report_data[0].keys():
+        html += '<th>{}</th>'.format(key)
+    html += '</tr>'
+    for row in report_data:
+        html += '<tr>'
+        for value in row.values():
+            html += '<td>{}</td>'.format(value)
+        html += '</tr>'
+    html += '</table>'
+
+    with open(filename, 'w') as html_file:
+        html_file.write(html)
 
 def loginPage(request):
 
@@ -242,69 +286,71 @@ def generateJednorazowy(request):
     context = {'report_data': report, 'total_time_spent': total_time_spent}
     return render(request, 'jednorazowy_report.html', context)
 
-@login_required(login_url='login')
-def generateAllTasks(request):
-    total_time_spent = timedelta()
-    report = []
-    # generating regular tasks
-    stale = ZadaniaStale.objects.all()
-    regular_time_spent = timedelta()
-    for zadanie in stale:
-        assigned_tasks = PrzydzieloneZadanieStale.objects.filter(id_zs=zadanie)
-        if check_group(request.user, "programista"):
-            assigned_tasks = assigned_tasks.filter(recipient=request.user)
-
-        if assigned_tasks.exists():
-            for task in assigned_tasks:
-                report.append({
-                    'name': task.id_zs.name,
-                    'description': task.id_zs.description,
-                    'created': task.created,
-                    'started': task.started,
-                    'finished': task.finished,
-                    'time': 0 if (task.finished is None or task.started is None) else task.finished - task.created,
-                })
-
-            completed_tasks = assigned_tasks.exclude(started=None)
-            completed_tasks = completed_tasks.exclude(finished=None)
-            if completed_tasks.exists():
-
-                regular_time = completed_tasks.aggregate(
-                    total=Sum(ExpressionWrapper(F('finished') - F('created'), output_field=models.DurationField()))
-                )['total']
-                if regular_time:
-                    regular_time_spent += regular_time
-
-    # generating singular tasks
-
-    jednorazowe = ZadaniaJednorazowe.objects.filter(
-        Q(started__isnull=False) | Q(finished__isnull=False))
-    if check_group(request.user, "programista"):
-        jednorazowe = jednorazowe.filter(host=request.user)
-
-
-    singular_time_spent = jednorazowe.exclude(started=None, finished=None).aggregate(
-        total=Sum(ExpressionWrapper(F('finished') - F('started'), output_field=models.DurationField()))
-    )['total']
-
-    for zadanie in jednorazowe:
-        time_spent = "Nie ukonczone"
-        if zadanie.started and zadanie.finished:
-            time_spent = zadanie.finished - zadanie.started
-
-        report.append({
-            'name': zadanie.name,
-            'description': zadanie.description,
-            'created': zadanie.created,
-            'started': zadanie.started,
-            'finished': zadanie.finished,
-            'time': time_spent,
-        })
-
-    total_time_spent = regular_time_spent + singular_time_spent
-    context = {'report_data': report, 'total_time_spent': total_time_spent}
-
-    return render(request, 'jednorazowy_report.html', context)
+# @login_required(login_url='login')
+# def generateAllTasks(request):
+#     total_time_spent = timedelta()
+#     report = []
+#     # generating regular tasks
+#     stale = ZadaniaStale.objects.all()
+#     regular_time_spent = timedelta()
+#     for zadanie in stale:
+#         assigned_tasks = PrzydzieloneZadanieStale.objects.filter(id_zs=zadanie)
+#         if check_group(request.user, "programista"):
+#             assigned_tasks = assigned_tasks.filter(recipient=request.user)
+#
+#         if assigned_tasks.exists():
+#             for task in assigned_tasks:
+#                 report.append({
+#                     'name': task.id_zs.name,
+#                     'description': task.id_zs.description,
+#                     'recipient': task.recipient,
+#                     'created': task.created,
+#                     'started': task.started,
+#                     'finished': task.finished,
+#                     'time': 0 if (task.finished is None or task.started is None) else task.finished - task.created,
+#                 })
+#
+#             completed_tasks = assigned_tasks.exclude(started=None)
+#             completed_tasks = completed_tasks.exclude(finished=None)
+#             if completed_tasks.exists():
+#
+#                 regular_time = completed_tasks.aggregate(
+#                     total=Sum(ExpressionWrapper(F('finished') - F('created'), output_field=models.DurationField()))
+#                 )['total']
+#                 if regular_time:
+#                     regular_time_spent += regular_time
+#
+#     # generating singular tasks
+#
+#     jednorazowe = ZadaniaJednorazowe.objects.filter(
+#         Q(started__isnull=False) | Q(finished__isnull=False))
+#     if check_group(request.user, "programista"):
+#         jednorazowe = jednorazowe.filter(host=request.user)
+#
+#
+#     singular_time_spent = jednorazowe.exclude(started=None, finished=None).aggregate(
+#         total=Sum(ExpressionWrapper(F('finished') - F('started'), output_field=models.DurationField()))
+#     )['total']
+#
+#     for zadanie in jednorazowe:
+#         time_spent = "Nie ukonczone"
+#         if zadanie.started and zadanie.finished:
+#             time_spent = zadanie.finished - zadanie.started
+#
+#         report.append({
+#             'name': zadanie.name,
+#             'description': zadanie.description,
+#             'recipient': zadanie.host,
+#             'created': zadanie.created,
+#             'started': zadanie.started,
+#             'finished': zadanie.finished,
+#             'time': time_spent,
+#         })
+#
+#     total_time_spent = regular_time_spent + singular_time_spent
+#     context = {'report_data': report, 'total_time_spent': total_time_spent}
+#
+#     return render(request, 'jednorazowy_report.html', context)
 
 @login_required(login_url='login')
 def createEditedDatesReport(request):
@@ -343,3 +389,176 @@ def createEditedDatesReport(request):
 
     context = {'regular_report': regular_report, 'singular_report': singular_report}
     return render(request, 'edited_dates_report.html', context)
+
+@login_required(login_url='login')
+def generateAllTasksReport(request):
+    total_time_spent = timedelta()
+    report = []
+    # generating regular tasks
+    stale = ZadaniaStale.objects.all()
+    regular_time_spent = timedelta()
+    for zadanie in stale:
+        assigned_tasks = PrzydzieloneZadanieStale.objects.filter(id_zs=zadanie)
+        if check_group(request.user, "programista"):
+            assigned_tasks = assigned_tasks.filter(recipient=request.user)
+
+        if assigned_tasks.exists():
+            for task in assigned_tasks:
+                report.append({
+                    'name': task.id_zs.name,
+                    'description': task.id_zs.description,
+                    'recipient': task.recipient,
+                    'created': task.created,
+                    'started': task.started,
+                    'finished': task.finished,
+                    'time': 0 if (task.finished is None or task.started is None) else task.finished - task.created,
+                })
+
+            completed_tasks = assigned_tasks.exclude(started=None)
+            completed_tasks = completed_tasks.exclude(finished=None)
+            if completed_tasks.exists():
+
+                regular_time = completed_tasks.aggregate(
+                    total=Sum(ExpressionWrapper(F('finished') - F('created'), output_field=models.DurationField()))
+                )['total']
+                if regular_time:
+                    regular_time_spent += regular_time
+
+    # generating singular tasks
+
+    jednorazowe = ZadaniaJednorazowe.objects.filter(
+        Q(started__isnull=False) | Q(finished__isnull=False))
+    if check_group(request.user, "programista"):
+        jednorazowe = jednorazowe.filter(host=request.user)
+
+
+    singular_time_spent = jednorazowe.exclude(started=None, finished=None).aggregate(
+        total=Sum(ExpressionWrapper(F('finished') - F('started'), output_field=models.DurationField()))
+    )['total']
+
+    for zadanie in jednorazowe:
+        time_spent = "Nie ukonczone"
+        if zadanie.started and zadanie.finished:
+            time_spent = zadanie.finished - zadanie.started
+
+        report.append({
+            'name': zadanie.name,
+            'description': zadanie.description,
+            'recipient': zadanie.host,
+            'created': zadanie.created,
+            'started': zadanie.started,
+            'finished': zadanie.finished,
+            'time': time_spent,
+        })
+
+    total_time_spent = regular_time_spent + singular_time_spent
+    context = {'report_data': report, 'total_time_spent': total_time_spent}
+    return context
+    # return render(request, 'jednorazowy_report.html', context)
+
+@login_required(login_url='login')
+def generateSpecificTasks(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        return redirect('generate-user-tasks-report', user_id=user_id)
+
+    context = {
+        'users': User.objects.filter(groups__name='programista')
+    }
+    return render(request, 'select_user_specific.html', context)
+
+
+@login_required(login_url='login')
+def generateUserTasksReport(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    total_time_spent = timedelta()
+    report = []
+
+    # Generating regular tasks
+    stale = ZadaniaStale.objects.all()
+    regular_time_spent = timedelta()
+    for zadanie in stale:
+        assigned_tasks = PrzydzieloneZadanieStale.objects.filter(id_zs=zadanie, recipient=user)
+
+        if assigned_tasks.exists():
+            for task in assigned_tasks:
+                report.append({
+                    'type': 'Zadanie Stałe',
+                    'name': task.id_zs.name,
+                    'description': task.id_zs.description,
+                    'recipient': task.recipient,
+                    'created': task.created,
+                    'started': task.started,
+                    'finished': task.finished,
+                    'time': 0 if (task.finished is None or task.started is None) else task.finished - task.created,
+                })
+
+            completed_tasks = assigned_tasks.exclude(started=None).exclude(finished=None)
+            if completed_tasks.exists():
+                regular_time = completed_tasks.aggregate(
+                    total=Sum(ExpressionWrapper(F('finished') - F('created'), output_field=models.DurationField()))
+                )['total']
+                if regular_time:
+                    regular_time_spent += regular_time
+
+    # Generating singular tasks
+    jednorazowe = ZadaniaJednorazowe.objects.filter(Q(started__isnull=False) | Q(finished__isnull=False), host=user)
+
+    singular_time_spent = timedelta()
+    singular_time_spent = jednorazowe.exclude(started=None, finished=None).aggregate(
+        total=Sum(ExpressionWrapper(F('finished') - F('started'), output_field=models.DurationField()))
+    )['total']
+
+    if singular_time_spent is None:
+        singular_time_spent = timedelta()
+
+    for zadanie in jednorazowe:
+        time_spent = "Nie ukonczone"
+        if zadanie.started and zadanie.finished:
+            time_spent = zadanie.finished - zadanie.started
+
+        report.append({
+            'type': 'Zadanie Jednorazowe',
+            'name': zadanie.name,
+            'description': zadanie.description,
+            'recipient': zadanie.host,
+            'created': zadanie.created,
+            'started': zadanie.started,
+            'finished': zadanie.finished,
+            'time': time_spent,
+        })
+
+    total_time_spent = timedelta()
+    total_time_spent = regular_time_spent + singular_time_spent
+
+    context = {
+        'report_data': report,
+        'total_time_spent': total_time_spent,
+        'user': user,
+        'extract_available': True,
+    }
+    return context
+
+def showGeneratedUserTasksReport(request, user_id):
+    context = generateUserTasksReport(request, user_id)
+    return render(request, 'user_tasks_report.html', context)
+
+@login_required(login_url='login')
+def exportUserTasksReportCSV(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    context = generateUserTasksReport(request, user_id)
+    filename = 'user_' + user.name + '_tasks_report.csv'
+    export_to_csv(context['report_data'], filename)
+    return render(request, 'user_tasks_report.html', context)
+
+@login_required(login_url='login')
+def exportUserTasksReportPDF(request, user_id):
+    context = generateUserTasksReport(request, user_id)
+    export_to_pdf(context['report_data'], 'report.pdf')
+    return render(request, 'user_tasks_report.html', context)
+
+@login_required(login_url='login')
+def exportUserTasksReportHTML(request, user_id):
+    context = generateUserTasksReport(request, user_id)
+    export_to_html(context['report_data'], 'report.html')
+    return render(request, 'user_tasks_report.html', context)

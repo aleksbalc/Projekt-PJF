@@ -18,4 +18,10 @@ urlpatterns = [
     path('generate-raport-jednorazowy/', views.generateJednorazowy, name="generate-raport-jednorazowy"),
     path('generate-raport-staly/', views.generateStaly, name="generate-raport-staly"),
     path('generate-edited-dates-report/', views.createEditedDatesReport, name="create-edited-dates-raport"),
+    path('generate-all-tasks-report/', views.generateAllTasksReport, name="generate-all-tasks-report"),
+    path('generate-specific-tasks-report/', views.generateSpecificTasks, name="generate-specific-tasks-report"),
+    path('generate-user-tasks-report/<int:user_id>/', views.showGeneratedUserTasksReport, name='generate-user-tasks-report'),
+    path('generate-user-tasks-report-csv/<int:user_id>/', views.exportUserTasksReportCSV, name='generate-user-tasks-report-csv'),
+    path('generate-user-tasks-report-pdf/<int:user_id>/', views.exportUserTasksReportPDF, name='generate-user-tasks-report-pdf'),
+    path('generate-user-tasks-report-html/<int:user_id>/', views.exportUserTasksReportHTML, name='generate-user-tasks-report-html'),
 ]
